@@ -3,10 +3,13 @@ package com.max.bookrecommendations.ui.auth
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import com.max.bookrecommendations.R
+import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 
 class SignupFragment : Fragment(R.layout.fragment_signup) {
 
@@ -14,6 +17,9 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
     private lateinit var emailInputLayout: TextInputLayout
     private lateinit var passwordInputLayout: TextInputLayout
     private lateinit var confirmPasswordInputLayout: TextInputLayout
+    private lateinit var signupButton: MaterialButton
+
+    private val authRemoteDataSource = AuthRemoteDataSource()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -22,17 +28,46 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         emailInputLayout = view.findViewById(R.id.emailInputLayout)
         passwordInputLayout = view.findViewById(R.id.passwordInputLayout)
         confirmPasswordInputLayout = view.findViewById(R.id.confirmPasswordInputLayout)
+        signupButton = view.findViewById(R.id.signupButton)
 
-        val signupButton: View = view.findViewById(R.id.signupButton)
         val goToLoginButton: View = view.findViewById(R.id.goToLoginButton)
 
         signupButton.setOnClickListener {
-            validateSignupForm()
+            if (validateSignupForm()) {
+                signupUser()
+            }
         }
 
         goToLoginButton.setOnClickListener {
             findNavController().popBackStack()
         }
+    }
+
+    private fun signupUser() {
+        val email = emailInputLayout.editText?.text.toString().trim()
+        val password = passwordInputLayout.editText?.text.toString().trim()
+
+        signupButton.isEnabled = false
+        signupButton.text = "Creating account..."
+
+        authRemoteDataSource.signup(
+            email = email,
+            password = password,
+            onSuccess = {
+                Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            },
+            onFailure = { exception ->
+                signupButton.isEnabled = true
+                signupButton.text = "Sign Up"
+
+                Toast.makeText(
+                    requireContext(),
+                    exception.message ?: "Signup failed",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        )
     }
 
     private fun validateSignupForm(): Boolean {
