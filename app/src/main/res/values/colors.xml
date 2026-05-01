@@ -4,6 +4,13 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="screen_background">#F8F5EF</color>
+    <color name="card_background">#FFFFFF</color>
+
+    <color name="primary">#2F5D50</color>
+    <color name="primary_dark">#24483E</color>
+    <color name="accent">#A67C52</color>
+
     <color name="text_primary">#1F1B16</color>
     <color name="text_secondary">#6F675E</color>
+    <color name="error">#B3261E</color>
 </resources>
