@@ -1,60 +1,82 @@
 package com.max.bookrecommendations.ui.profile
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.max.bookrecommendations.R
+import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [EditProfileFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class EditProfileFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var nameInputLayout: TextInputLayout
+    private lateinit var saveButton: MaterialButton
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private val authRemoteDataSource = AuthRemoteDataSource()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        nameInputLayout = view.findViewById(R.id.nameInputLayout)
+        saveButton = view.findViewById(R.id.saveButton)
+
+        val currentUser = authRemoteDataSource.getCurrentUser()
+
+        if (currentUser == null) {
+            findNavController().popBackStack()
+            return
+        }
+
+        nameInputLayout.editText?.setText(currentUser.displayName ?: "")
+
+        saveButton.setOnClickListener {
+            if (validateForm()) {
+                updateProfileName()
+            }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_edit_profile, container, false)
+    private fun validateForm(): Boolean {
+        val name = nameInputLayout.editText?.text.toString().trim()
+
+        return if (name.isEmpty()) {
+            nameInputLayout.error = "Name is required"
+            false
+        } else {
+            nameInputLayout.error = null
+            true
+        }
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment EditProfileFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            EditProfileFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    private fun updateProfileName() {
+        val name = nameInputLayout.editText?.text.toString().trim()
+        val currentUser = authRemoteDataSource.getCurrentUser()
+
+        saveButton.isEnabled = false
+        saveButton.text = "Saving..."
+
+        val profileUpdates = UserProfileChangeRequest.Builder()
+            .setDisplayName(name)
+            .build()
+
+        currentUser?.updateProfile(profileUpdates)
+            ?.addOnSuccessListener {
+                Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
+            ?.addOnFailureListener { exception ->
+                saveButton.isEnabled = true
+                saveButton.text = "Save Changes"
+
+                Toast.makeText(
+                    requireContext(),
+                    exception.message ?: "Update failed",
+                    Toast.LENGTH_LONG
+                ).show()
             }
     }
 }

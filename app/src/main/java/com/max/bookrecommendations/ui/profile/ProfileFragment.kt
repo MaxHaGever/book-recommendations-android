@@ -36,7 +36,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
 
         editProfileButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Edit profile coming soon", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
         }
     }
 
