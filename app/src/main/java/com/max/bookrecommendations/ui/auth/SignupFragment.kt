@@ -10,6 +10,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import com.max.bookrecommendations.R
 import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class SignupFragment : Fragment(R.layout.fragment_signup) {
 
@@ -53,9 +54,28 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         authRemoteDataSource.signup(
             email = email,
             password = password,
-            onSuccess = {
-                Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
+            onSuccess = { user ->
+                val name = nameInputLayout.editText?.text.toString().trim()
+
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName(name)
+                    .build()
+
+                user?.updateProfile(profileUpdates)
+                    ?.addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
+                        findNavController().popBackStack()
+                    }
+                    ?.addOnFailureListener { exception ->
+                        signupButton.isEnabled = true
+                        signupButton.text = "Sign Up"
+
+                        Toast.makeText(
+                            requireContext(),
+                            exception.message ?: "Profile update failed",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
             },
             onFailure = { exception ->
                 signupButton.isEnabled = true

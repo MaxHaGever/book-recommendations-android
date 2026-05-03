@@ -79,8 +79,11 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
             password = password,
             onSuccess = {
                 Toast.makeText(requireContext(), "Login successful", Toast.LENGTH_SHORT).show()
+
                 loginButton.isEnabled = true
                 loginButton.text = "Login"
+
+                findNavController().navigate(R.id.action_authFragment_to_profileFragment)
             },
             onFailure = { exception ->
                 loginButton.isEnabled = true
