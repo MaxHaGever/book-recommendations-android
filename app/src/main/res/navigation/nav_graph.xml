@@ -37,4 +37,9 @@
         android:id="@+id/editProfileFragment"
         android:name="com.max.bookrecommendations.ui.profile.EditProfileFragment"
         android:label="Edit Profile" />
+
+    <fragment
+        android:id="@+id/createEditPostFragment"
+        android:name="com.max.bookrecommendations.ui.createeditpost.CreateEditPostFragment"
+        android:label="Create Post" />
 </navigation>

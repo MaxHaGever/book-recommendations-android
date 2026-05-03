@@ -72,5 +72,16 @@
             app:backgroundTint="@color/primary"
             app:cornerRadius="16dp" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/createPostButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="12dp"
+            android:text="+ Create Post"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="16dp" />
+
     </LinearLayout>
 </ScrollView>
