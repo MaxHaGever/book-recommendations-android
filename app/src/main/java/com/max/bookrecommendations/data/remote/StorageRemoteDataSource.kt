@@ -29,4 +29,30 @@ class StorageRemoteDataSource {
                 onFailure(exception)
             }
     }
+
+    fun uploadPostImage(
+        postId: String,
+        imageUri: Uri,
+        onSuccess: (String) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val imageRef = storage.reference
+            .child("post_images")
+            .child(postId)
+            .child("post.jpg")
+
+        imageRef.putFile(imageUri)
+            .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let { throw it }
+                }
+                imageRef.downloadUrl
+            }
+            .addOnSuccessListener { downloadUri ->
+                onSuccess(downloadUri.toString())
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 }

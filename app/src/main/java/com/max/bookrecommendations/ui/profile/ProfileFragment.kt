@@ -19,6 +19,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var editProfileButton: MaterialButton
     private lateinit var logoutButton: MaterialButton
     private lateinit var profileImageView: ImageView
+    private lateinit var createPostButton: MaterialButton
 
     private val authRemoteDataSource = AuthRemoteDataSource()
 
@@ -30,6 +31,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         editProfileButton = view.findViewById(R.id.editProfileButton)
         logoutButton = view.findViewById(R.id.logoutButton)
         profileImageView = view.findViewById(R.id.profileImageView)
+        createPostButton = view.findViewById(R.id.createPostButton)
 
         showCurrentUser()
 
@@ -41,6 +43,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         editProfileButton.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
+        }
+
+        createPostButton.setOnClickListener {
+            findNavController().navigate(R.id.createEditPostFragment)
         }
     }
 
