@@ -67,6 +67,7 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         savePostButton.setOnClickListener {
             savePost()
         }
+
     }
 
     private fun savePost() {
