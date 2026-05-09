@@ -15,7 +15,7 @@ import com.max.bookrecommendations.data.model.Post
 import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 import com.max.bookrecommendations.data.remote.PostRemoteDataSource
 import com.max.bookrecommendations.data.remote.StorageRemoteDataSource
-import java.util.UUID
+import com.squareup.picasso.Picasso
 
 class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
@@ -28,6 +28,10 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
     private var selectedImageUri: Uri? = null
     private val authRemoteDataSource = AuthRemoteDataSource()
     private val postRemoteDataSource = PostRemoteDataSource()
+    private var postId: String? = null
+    private var isEditMode = false
+    private var existingImageUrl: String? = null
+    private var existingCreatedAt: Long = 0L
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -47,6 +51,14 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         authorEditText = view.findViewById(R.id.authorEditText)
 
         val changeImageButton: MaterialButton = view.findViewById(R.id.changePostImageButton)
+
+        postId = arguments?.getString("postId")
+        isEditMode = !postId.isNullOrEmpty()
+
+        if (isEditMode) {
+            loadPostForEdit(postId!!)
+            savePostButton.text = "Update Post"
+        }
 
         changeImageButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
@@ -69,20 +81,22 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
         val currentUser = authRemoteDataSource.getCurrentUser() ?: return
 
-        val postId = java.util.UUID.randomUUID().toString()
+        val finalPostId = if (isEditMode) {
+            postId!!
+        } else {
+            java.util.UUID.randomUUID().toString()
+        }
 
         savePostButton.isEnabled = false
-        savePostButton.text = "Posting..."
+        savePostButton.text = if (isEditMode) "Updating..." else "Posting..."
 
         if (selectedImageUri != null) {
-
             storageRemoteDataSource.uploadPostImage(
-                postId,
+                finalPostId,
                 selectedImageUri!!,
                 onSuccess = { imageUrl ->
-
                     val post = Post(
-                        id = postId,
+                        id = finalPostId,
                         ownerUid = currentUser.uid,
                         ownerName = currentUser.displayName ?: "User",
                         ownerProfileImageUrl = currentUser.photoUrl?.toString(),
@@ -90,28 +104,25 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
                         bookAuthor = author,
                         description = review,
                         customImageUrl = imageUrl,
-                        createdAt = System.currentTimeMillis()
+                        createdAt = if (isEditMode) existingCreatedAt else System.currentTimeMillis()
                     )
 
                     saveToFirestore(post)
                 },
                 onFailure = {
                     handleError(it)
-                }
-            )
-
+                })
         } else {
-
             val post = Post(
-                id = postId,
+                id = finalPostId,
                 ownerUid = currentUser.uid,
                 ownerName = currentUser.displayName ?: "User",
                 ownerProfileImageUrl = currentUser.photoUrl?.toString(),
                 bookTitle = title,
                 bookAuthor = author,
                 description = review,
-                customImageUrl = null,
-                createdAt = System.currentTimeMillis()
+                customImageUrl = existingImageUrl,
+                createdAt = if (isEditMode) existingCreatedAt else System.currentTimeMillis()
             )
 
             saveToFirestore(post)
@@ -119,10 +130,15 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
     }
 
     private fun saveToFirestore(post: Post) {
-        postRemoteDataSource.createPost(
-            post,
+        postRemoteDataSource.savePost(
+            post = post,
             onSuccess = {
-                Toast.makeText(requireContext(), "Post created", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    if (isEditMode) "Post updated successfully" else "Post created successfully",
+                    Toast.LENGTH_SHORT
+                ).show()
+
                 findNavController().popBackStack()
             },
             onFailure = {
@@ -136,9 +152,24 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         savePostButton.text = "Post"
 
         Toast.makeText(
-            requireContext(),
-            exception.message ?: "Failed",
-            Toast.LENGTH_LONG
+            requireContext(), exception.message ?: "Failed", Toast.LENGTH_LONG
         ).show()
+    }
+
+    private fun loadPostForEdit(postId: String) {
+        postRemoteDataSource.getPostById(postId = postId, onSuccess = { post ->
+            titleEditText.setText(post.bookTitle)
+            authorEditText.setText(post.bookAuthor)
+            reviewEditText.setText(post.description)
+
+            existingImageUrl = post.customImageUrl
+            existingCreatedAt = post.createdAt
+
+            if (!post.customImageUrl.isNullOrEmpty()) {
+                Picasso.get().load(post.customImageUrl).into(postImagePreview)
+            }
+        }, onFailure = {
+            handleError(it)
+        })
     }
 }
