@@ -211,7 +211,10 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
     private fun searchBooks(query: String) {
 
-        RetrofitInstance.api.searchBooks(query)
+        RetrofitInstance.api.searchBooks(
+            query,
+            "AIzaSyBMpQzmDzlzfxQ4WR0JM3HMqEwRdQXVUiI"
+        )
             .enqueue(object : Callback<GoogleBooksResponse> {
 
                 override fun onResponse(

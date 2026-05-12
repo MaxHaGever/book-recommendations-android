@@ -8,6 +8,7 @@ interface GoogleBooksApi {
 
     @GET("volumes")
     fun searchBooks(
-        @Query("q") query: String
+        @Query("q") query: String,
+        @Query("key") apiKey: String
     ): Call<GoogleBooksResponse>
 }
