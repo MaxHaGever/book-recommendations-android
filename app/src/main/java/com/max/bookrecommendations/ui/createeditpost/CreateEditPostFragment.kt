@@ -16,6 +16,14 @@ import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 import com.max.bookrecommendations.data.remote.PostRemoteDataSource
 import com.max.bookrecommendations.data.remote.StorageRemoteDataSource
 import com.squareup.picasso.Picasso
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.max.bookrecommendations.data.model.BookSearchItem
+import com.max.bookrecommendations.data.remote.api.GoogleBooksResponse
+import com.max.bookrecommendations.data.remote.api.RetrofitInstance
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
@@ -32,6 +40,11 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
     private var isEditMode = false
     private var existingImageUrl: String? = null
     private var existingCreatedAt: Long = 0L
+    private lateinit var bookSearchEditText: TextInputEditText
+    private lateinit var searchBookButton: MaterialButton
+    private lateinit var booksRecyclerView: RecyclerView
+
+    private lateinit var booksAdapter: BookSearchAdapter
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -49,8 +62,22 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         postImagePreview = view.findViewById(R.id.postImagePreview)
         savePostButton = view.findViewById(R.id.savePostButton)
         authorEditText = view.findViewById(R.id.authorEditText)
+        bookSearchEditText = view.findViewById(R.id.bookSearchEditText)
+        searchBookButton = view.findViewById(R.id.searchBookButton)
+        booksRecyclerView = view.findViewById(R.id.booksRecyclerView)
 
         val changeImageButton: MaterialButton = view.findViewById(R.id.changePostImageButton)
+
+        booksAdapter = BookSearchAdapter(mutableListOf()) { selectedBook ->
+
+            titleEditText.setText(selectedBook.title)
+            authorEditText.setText(selectedBook.authors)
+
+            booksRecyclerView.visibility = View.GONE
+        }
+
+        booksRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        booksRecyclerView.adapter = booksAdapter
 
         postId = arguments?.getString("postId")
         isEditMode = !postId.isNullOrEmpty()
@@ -64,10 +91,18 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
             pickImageLauncher.launch("image/*")
         }
 
+        searchBookButton.setOnClickListener {
+
+            val query = bookSearchEditText.text.toString().trim()
+
+            if (query.isNotEmpty()) {
+                searchBooks(query)
+            }
+        }
+
         savePostButton.setOnClickListener {
             savePost()
         }
-
     }
 
     private fun savePost() {
@@ -172,5 +207,47 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         }, onFailure = {
             handleError(it)
         })
+    }
+
+    private fun searchBooks(query: String) {
+
+        RetrofitInstance.api.searchBooks(query)
+            .enqueue(object : Callback<GoogleBooksResponse> {
+
+                override fun onResponse(
+                    call: Call<GoogleBooksResponse>,
+                    response: Response<GoogleBooksResponse>
+                ) {
+
+                    if (response.isSuccessful) {
+
+                        val books = response.body()?.items?.mapNotNull { item ->
+
+                            val volumeInfo = item.volumeInfo ?: return@mapNotNull null
+
+                            BookSearchItem(
+                                googleBookId = item.id ?: "",
+                                title = volumeInfo.title ?: "Unknown title",
+                                authors = volumeInfo.authors?.joinToString(", ")
+                                    ?: "Unknown author",
+                                thumbnailUrl = volumeInfo.imageLinks?.thumbnail,
+                                description = volumeInfo.description
+                            )
+                        } ?: emptyList()
+
+                        booksRecyclerView.visibility = View.VISIBLE
+                        booksAdapter.updateBooks(books)
+                    }
+                }
+
+                override fun onFailure(call: Call<GoogleBooksResponse>, t: Throwable) {
+
+                    Toast.makeText(
+                        requireContext(),
+                        t.message,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
     }
 }
