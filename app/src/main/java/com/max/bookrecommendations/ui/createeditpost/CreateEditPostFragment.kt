@@ -43,6 +43,7 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
     private lateinit var bookSearchEditText: TextInputEditText
     private lateinit var searchBookButton: MaterialButton
     private lateinit var booksRecyclerView: RecyclerView
+    private var selectedApiImageUrl: String? = null
 
     private lateinit var booksAdapter: BookSearchAdapter
 
@@ -72,6 +73,18 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
             titleEditText.setText(selectedBook.title)
             authorEditText.setText(selectedBook.authors)
+
+            if (!selectedBook.thumbnailUrl.isNullOrEmpty()) {
+                val secureImageUrl = selectedBook.thumbnailUrl.replace("http://", "https://")
+
+                selectedApiImageUrl = secureImageUrl
+
+                Picasso.get()
+                    .load(secureImageUrl)
+                    .placeholder(R.drawable.default_book)
+                    .error(R.drawable.default_book)
+                    .into(postImagePreview)
+            }
 
             booksRecyclerView.visibility = View.GONE
         }
@@ -148,6 +161,34 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
                 onFailure = {
                     handleError(it)
                 })
+        } else if (selectedApiImageUrl != null) {
+
+            storageRemoteDataSource.uploadPostImageFromUrl(
+                finalPostId,
+                selectedApiImageUrl!!,
+                onSuccess = { imageUrl ->
+
+                    val post = Post(
+                        id = finalPostId,
+                        ownerUid = currentUser.uid,
+                        ownerName = currentUser.displayName ?: "User",
+                        ownerProfileImageUrl = currentUser.photoUrl?.toString(),
+                        bookTitle = title,
+                        bookAuthor = author,
+                        description = review,
+                        customImageUrl = imageUrl,
+                        createdAt = if (isEditMode)
+                            existingCreatedAt
+                        else
+                            System.currentTimeMillis()
+                    )
+
+                    saveToFirestore(post)
+                },
+                onFailure = {
+                    handleError(it)
+                }
+            )
         } else {
             val post = Post(
                 id = finalPostId,
