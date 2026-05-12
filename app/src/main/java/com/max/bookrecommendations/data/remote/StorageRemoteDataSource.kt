@@ -55,4 +55,55 @@ class StorageRemoteDataSource {
                 onFailure(exception)
             }
     }
+
+    fun uploadPostImageFromUrl(
+        postId: String,
+        imageUrl: String,
+        onSuccess: (String) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val imageRef = storage.reference
+            .child("post_images")
+            .child(postId)
+            .child("post.jpg")
+
+        val client = okhttp3.OkHttpClient()
+        val request = okhttp3.Request.Builder()
+            .url(imageUrl)
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+                onFailure(e)
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                if (!response.isSuccessful) {
+                    onFailure(Exception("Failed to download image"))
+                    return
+                }
+
+                val bytes = response.body?.bytes()
+
+                if (bytes == null) {
+                    onFailure(Exception("Image is empty"))
+                    return
+                }
+
+                imageRef.putBytes(bytes)
+                    .continueWithTask { task ->
+                        if (!task.isSuccessful) {
+                            task.exception?.let { throw it }
+                        }
+                        imageRef.downloadUrl
+                    }
+                    .addOnSuccessListener { downloadUri ->
+                        onSuccess(downloadUri.toString())
+                    }
+                    .addOnFailureListener { exception ->
+                        onFailure(exception)
+                    }
+            }
+        })
+    }
 }

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,6 +11,16 @@ android {
     namespace = "com.max.bookrecommendations"
     compileSdk = 35
 
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+
+    if (localPropertiesFile.exists()) {
+        localProperties.load(localPropertiesFile.inputStream())
+    }
+
+    val googleBooksApiKey =
+        localProperties.getProperty("GOOGLE_BOOKS_API_KEY") ?: ""
+
     defaultConfig {
         applicationId = "com.max.bookrecommendations"
         minSdk = 29
@@ -17,6 +29,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "GOOGLE_BOOKS_API_KEY",
+            "\"$googleBooksApiKey\""
+        )
     }
 
     buildTypes {
@@ -36,6 +54,10 @@ android {
 
     kotlinOptions {
         jvmTarget = "11"
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 
@@ -61,6 +83,9 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.squareup.picasso:picasso:2.8")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }
 
 configurations.all {
