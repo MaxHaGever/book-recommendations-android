@@ -18,6 +18,7 @@ import com.max.bookrecommendations.data.remote.StorageRemoteDataSource
 import com.squareup.picasso.Picasso
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.max.bookrecommendations.BuildConfig
 import com.max.bookrecommendations.data.model.BookSearchItem
 import com.max.bookrecommendations.data.remote.api.GoogleBooksResponse
 import com.max.bookrecommendations.data.remote.api.RetrofitInstance
@@ -252,9 +253,15 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
     private fun searchBooks(query: String) {
 
+        Toast.makeText(
+            requireContext(),
+            "Key length: ${BuildConfig.GOOGLE_BOOKS_API_KEY.length}",
+            Toast.LENGTH_SHORT
+        ).show()
+
         RetrofitInstance.api.searchBooks(
             query,
-            "AIzaSyBMpQzmDzlzfxQ4WR0JM3HMqEwRdQXVUiI"
+            BuildConfig.GOOGLE_BOOKS_API_KEY
         )
             .enqueue(object : Callback<GoogleBooksResponse> {
 
