@@ -4,12 +4,14 @@ import com.max.bookrecommendations.data.local.PostDao
 import com.max.bookrecommendations.data.mapper.toEntity
 import com.max.bookrecommendations.data.mapper.toPost
 import com.max.bookrecommendations.data.model.Post
+import com.max.bookrecommendations.data.remote.PostRemoteDataSource
 
 class PostRepository(
-    private val postDao: PostDao
+    private val postDao: PostDao,
+    private val postRemoteDataSource: PostRemoteDataSource = PostRemoteDataSource()
 ) {
 
-    suspend fun getAllPosts(): List<Post> {
+    suspend fun getCachedPosts(): List<Post> {
         return postDao.getAllPosts().map { it.toPost() }
     }
 
@@ -35,5 +37,15 @@ class PostRepository(
 
     suspend fun deleteAllPosts() {
         postDao.deleteAllPosts()
+    }
+
+    fun refreshPostsFromRemote(
+        onSuccess: (List<Post>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        postRemoteDataSource.getAllPosts(
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
     }
 }

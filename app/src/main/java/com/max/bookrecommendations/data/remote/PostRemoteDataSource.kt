@@ -56,4 +56,22 @@ class PostRemoteDataSource {
                 onFailure(exception)
             }
     }
+
+    fun getAllPosts(
+        onSuccess: (List<Post>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("posts")
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val posts = snapshot.documents.mapNotNull { document ->
+                    document.toObject(Post::class.java)
+                }
+                onSuccess(posts)
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 }
