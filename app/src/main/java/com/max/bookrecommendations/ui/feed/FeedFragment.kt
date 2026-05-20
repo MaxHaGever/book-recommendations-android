@@ -29,11 +29,14 @@ class FeedFragment : Fragment(R.layout.fragment_feed) {
         val createPostFab: FloatingActionButton = view.findViewById(R.id.createPostFab)
 
         postAdapter = PostAdapter(mutableListOf()) { post ->
-            Toast.makeText(
-                requireContext(),
-                post.bookTitle,
-                Toast.LENGTH_SHORT
-            ).show()
+            val bundle = Bundle().apply {
+                putString("postId", post.id)
+            }
+
+            findNavController().navigate(
+                R.id.action_feedFragment_to_postDetailsFragment,
+                bundle
+            )
         }
 
         feedRecyclerView.layoutManager = LinearLayoutManager(requireContext())
