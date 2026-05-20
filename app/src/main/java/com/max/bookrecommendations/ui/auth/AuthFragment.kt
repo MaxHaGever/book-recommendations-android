@@ -3,12 +3,12 @@ package com.max.bookrecommendations.ui.auth
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import com.max.bookrecommendations.R
-import androidx.navigation.fragment.findNavController
-import android.widget.Toast
-import com.google.android.material.button.MaterialButton
 import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 
 class AuthFragment : Fragment(R.layout.fragment_auth) {
@@ -16,10 +16,16 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     private lateinit var emailInputLayout: TextInputLayout
     private lateinit var passwordInputLayout: TextInputLayout
     private lateinit var loginButton: MaterialButton
+
     private val authRemoteDataSource = AuthRemoteDataSource()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (authRemoteDataSource.isUserLoggedIn()) {
+            findNavController().navigate(R.id.action_authFragment_to_feedFragment)
+            return
+        }
 
         emailInputLayout = view.findViewById(R.id.emailInputLayout)
         passwordInputLayout = view.findViewById(R.id.passwordInputLayout)
@@ -83,7 +89,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
                 loginButton.isEnabled = true
                 loginButton.text = "Login"
 
-                findNavController().navigate(R.id.action_authFragment_to_profileFragment)
+                findNavController().navigate(R.id.action_authFragment_to_feedFragment)
             },
             onFailure = { exception ->
                 loginButton.isEnabled = true
