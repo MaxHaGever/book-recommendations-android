@@ -9,9 +9,9 @@
         android:name="com.max.bookrecommendations.ui.feed.FeedFragment"
         android:label="Feed">
 
-    <action
-        android:id="@+id/action_feedFragment_to_createEditPostFragment"
-        app:destination="@id/createEditPostFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_createEditPostFragment"
+            app:destination="@id/createEditPostFragment" />
 
         <action
             android:id="@+id/action_feedFragment_to_postDetailsFragment"
@@ -39,6 +39,7 @@
         <action
             android:id="@+id/action_authFragment_to_feedFragment"
             app:destination="@id/feedFragment" />
+
     </fragment>
 
     <fragment
@@ -73,6 +74,7 @@
         <action
             android:id="@+id/action_profileFragment_to_myPostsFragment"
             app:destination="@id/myPostsFragment" />
+
     </fragment>
 
     <fragment
@@ -95,4 +97,5 @@
             app:destination="@id/postDetailsFragment" />
 
     </fragment>
+
 </navigation>

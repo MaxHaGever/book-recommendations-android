@@ -73,17 +73,6 @@
             app:backgroundTint="@color/primary"
             app:cornerRadius="16dp" />
 
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/logoutButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Logout"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            app:backgroundTint="@color/primary"
-            app:cornerRadius="16dp" />
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/createPostButton"
             android:layout_width="match_parent"
@@ -95,7 +84,15 @@
             app:backgroundTint="@color/primary"
             app:cornerRadius="16dp" />
 
-
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Logout"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="16dp" />
 
     </LinearLayout>
 </ScrollView>
