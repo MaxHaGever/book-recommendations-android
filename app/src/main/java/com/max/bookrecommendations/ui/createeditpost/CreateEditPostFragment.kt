@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.navigation.fragment.navArgs
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -28,6 +29,7 @@ import retrofit2.Response
 
 class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
+    private val args: CreateEditPostFragmentArgs by navArgs()
     private lateinit var titleEditText: TextInputEditText
     private lateinit var reviewEditText: TextInputEditText
     private lateinit var postImagePreview: ImageView
@@ -93,7 +95,7 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         booksRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         booksRecyclerView.adapter = booksAdapter
 
-        postId = arguments?.getString("postId")
+        postId = args.postId
         isEditMode = !postId.isNullOrEmpty()
 
         if (isEditMode) {

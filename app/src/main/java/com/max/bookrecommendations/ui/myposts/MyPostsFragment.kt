@@ -31,14 +31,10 @@ class MyPostsFragment : Fragment(R.layout.fragment_my_posts) {
         val emptyMyPostsTextView: TextView = view.findViewById(R.id.emptyMyPostsTextView)
 
         postAdapter = PostAdapter(mutableListOf()) { post ->
-            val bundle = Bundle().apply {
-                putString("postId", post.id)
-            }
+            val action =
+                MyPostsFragmentDirections.actionMyPostsFragmentToPostDetailsFragment(post.id)
 
-            findNavController().navigate(
-                R.id.action_myPostsFragment_to_postDetailsFragment,
-                bundle
-            )
+            findNavController().navigate(action)
         }
 
         myPostsRecyclerView.layoutManager = LinearLayoutManager(requireContext())

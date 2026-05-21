@@ -85,7 +85,15 @@
     <fragment
         android:id="@+id/createEditPostFragment"
         android:name="com.max.bookrecommendations.ui.createeditpost.CreateEditPostFragment"
-        android:label="Create Post" />
+        android:label="Create Post">
+
+        <argument
+            android:name="postId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/myPostsFragment"

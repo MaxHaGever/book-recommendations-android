@@ -3,8 +3,10 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("androidx.navigation.safeargs.kotlin")
     id("org.jetbrains.kotlin.kapt")
     id("com.google.gms.google-services")
+
 }
 
 android {

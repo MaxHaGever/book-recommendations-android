@@ -7,6 +7,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.navigation.fragment.navArgs
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
+    private val args: PostDetailsFragmentArgs by navArgs()
     private lateinit var progressBar: ProgressBar
     private lateinit var imageView: ImageView
     private lateinit var titleTextView: TextView
@@ -55,13 +57,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         val database = DatabaseProvider.getDatabase(requireContext())
         postRepository = PostRepository(database.postDao())
 
-        postId = arguments?.getString("postId")
-
-        if (postId.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Post not found", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
-            return
-        }
+        postId = args.postId
 
         editPostButton.setOnClickListener {
             openEditPost()
@@ -125,15 +121,13 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
     private fun openEditPost() {
         val post = currentPost ?: return
 
-        val bundle = Bundle().apply {
-            putString("postId", post.id)
-        }
+        val action =
+            PostDetailsFragmentDirections
+                .actionPostDetailsFragmentToCreateEditPostFragment(post.id)
 
-        findNavController().navigate(
-            R.id.action_postDetailsFragment_to_createEditPostFragment,
-            bundle
-        )
+        findNavController().navigate(action)
     }
+
 
     private fun deleteCurrentPost() {
         val post = currentPost ?: return
