@@ -82,4 +82,12 @@ class FeedFragment : Fragment(R.layout.fragment_feed) {
 
         feedViewModel.loadFeed()
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (::feedViewModel.isInitialized) {
+            feedViewModel.loadFeed()
+        }
+    }
 }

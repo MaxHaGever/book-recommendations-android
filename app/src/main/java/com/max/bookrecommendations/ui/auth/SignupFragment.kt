@@ -64,7 +64,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
                 user?.updateProfile(profileUpdates)
                     ?.addOnSuccessListener {
                         Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack()
+                        findNavController().navigate(R.id.action_signupFragment_to_feedFragment)
                     }
                     ?.addOnFailureListener { exception ->
                         signupButton.isEnabled = true

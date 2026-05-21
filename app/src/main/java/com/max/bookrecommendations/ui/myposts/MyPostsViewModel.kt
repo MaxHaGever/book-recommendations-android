@@ -26,13 +26,26 @@ class MyPostsViewModel(
             _isLoading.value = true
 
             try {
-                val myPosts = postRepository.getPostsByOwner(ownerUid)
-                _posts.value = myPosts
+                val cachedPosts = postRepository.getPostsByOwner(ownerUid)
+                _posts.value = cachedPosts
             } catch (exception: Exception) {
                 _errorMessage.value = exception.message
             }
 
-            _isLoading.value = false
+            postRepository.refreshPostsByOwnerFromRemote(
+                ownerUid = ownerUid,
+                onSuccess = { remotePosts ->
+                    viewModelScope.launch {
+                        postRepository.savePosts(remotePosts)
+                        _posts.value = remotePosts
+                        _isLoading.value = false
+                    }
+                },
+                onFailure = { exception ->
+                    _errorMessage.value = exception.message
+                    _isLoading.value = false
+                }
+            )
         }
     }
 }

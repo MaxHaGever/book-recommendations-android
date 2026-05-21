@@ -40,14 +40,15 @@ class PostAdapter(
 
         val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
 
+        Picasso.get().cancelRequest(holder.imageView)
+        holder.imageView.setImageResource(R.drawable.default_book)
+
         if (!imageUrl.isNullOrEmpty()) {
             Picasso.get()
                 .load(imageUrl)
                 .placeholder(R.drawable.default_book)
                 .error(R.drawable.default_book)
                 .into(holder.imageView)
-        } else {
-            holder.imageView.setImageResource(R.drawable.default_book)
         }
 
         holder.itemView.setOnClickListener {

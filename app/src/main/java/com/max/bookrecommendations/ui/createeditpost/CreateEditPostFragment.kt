@@ -5,24 +5,24 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.navigation.fragment.navArgs
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.max.bookrecommendations.BuildConfig
 import com.max.bookrecommendations.R
+import com.max.bookrecommendations.data.model.BookSearchItem
 import com.max.bookrecommendations.data.model.Post
 import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 import com.max.bookrecommendations.data.remote.PostRemoteDataSource
 import com.max.bookrecommendations.data.remote.StorageRemoteDataSource
-import com.squareup.picasso.Picasso
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.max.bookrecommendations.BuildConfig
-import com.max.bookrecommendations.data.model.BookSearchItem
 import com.max.bookrecommendations.data.remote.api.GoogleBooksResponse
 import com.max.bookrecommendations.data.remote.api.RetrofitInstance
+import com.squareup.picasso.Picasso
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -30,25 +30,27 @@ import retrofit2.Response
 class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
     private val args: CreateEditPostFragmentArgs by navArgs()
+
     private lateinit var titleEditText: TextInputEditText
     private lateinit var reviewEditText: TextInputEditText
     private lateinit var postImagePreview: ImageView
     private lateinit var savePostButton: MaterialButton
-    private val storageRemoteDataSource = StorageRemoteDataSource()
     private lateinit var authorEditText: TextInputEditText
-    private var selectedImageUri: Uri? = null
+    private lateinit var bookSearchEditText: TextInputEditText
+    private lateinit var searchBookButton: MaterialButton
+    private lateinit var booksRecyclerView: RecyclerView
+    private lateinit var booksAdapter: BookSearchAdapter
+
+    private val storageRemoteDataSource = StorageRemoteDataSource()
     private val authRemoteDataSource = AuthRemoteDataSource()
     private val postRemoteDataSource = PostRemoteDataSource()
+
+    private var selectedImageUri: Uri? = null
+    private var selectedApiImageUrl: String? = null
     private var postId: String? = null
     private var isEditMode = false
     private var existingImageUrl: String? = null
     private var existingCreatedAt: Long = 0L
-    private lateinit var bookSearchEditText: TextInputEditText
-    private lateinit var searchBookButton: MaterialButton
-    private lateinit var booksRecyclerView: RecyclerView
-    private var selectedApiImageUrl: String? = null
-
-    private lateinit var booksAdapter: BookSearchAdapter
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -73,7 +75,6 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         val changeImageButton: MaterialButton = view.findViewById(R.id.changePostImageButton)
 
         booksAdapter = BookSearchAdapter(mutableListOf()) { selectedBook ->
-
             titleEditText.setText(selectedBook.title)
             authorEditText.setText(selectedBook.authors)
 
@@ -108,7 +109,6 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         }
 
         searchBookButton.setOnClickListener {
-
             val query = bookSearchEditText.text.toString().trim()
 
             if (query.isNotEmpty()) {
@@ -139,6 +139,8 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
             java.util.UUID.randomUUID().toString()
         }
 
+        val updatedAt = System.currentTimeMillis()
+
         savePostButton.isEnabled = false
         savePostButton.text = if (isEditMode) "Updating..." else "Posting..."
 
@@ -156,21 +158,21 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
                         bookAuthor = author,
                         description = review,
                         customImageUrl = imageUrl,
-                        createdAt = if (isEditMode) existingCreatedAt else System.currentTimeMillis()
+                        createdAt = if (isEditMode) existingCreatedAt else updatedAt,
+                        lastUpdated = updatedAt
                     )
 
                     saveToFirestore(post)
                 },
                 onFailure = {
                     handleError(it)
-                })
+                }
+            )
         } else if (selectedApiImageUrl != null) {
-
             storageRemoteDataSource.uploadPostImageFromUrl(
                 finalPostId,
                 selectedApiImageUrl!!,
                 onSuccess = { imageUrl ->
-
                     val post = Post(
                         id = finalPostId,
                         ownerUid = currentUser.uid,
@@ -180,10 +182,8 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
                         bookAuthor = author,
                         description = review,
                         customImageUrl = imageUrl,
-                        createdAt = if (isEditMode)
-                            existingCreatedAt
-                        else
-                            System.currentTimeMillis()
+                        createdAt = if (isEditMode) existingCreatedAt else updatedAt,
+                        lastUpdated = updatedAt
                     )
 
                     saveToFirestore(post)
@@ -202,7 +202,8 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
                 bookAuthor = author,
                 description = review,
                 customImageUrl = existingImageUrl,
-                createdAt = if (isEditMode) existingCreatedAt else System.currentTimeMillis()
+                createdAt = if (isEditMode) existingCreatedAt else updatedAt,
+                lastUpdated = updatedAt
             )
 
             saveToFirestore(post)
@@ -229,78 +230,76 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
 
     private fun handleError(exception: Exception) {
         savePostButton.isEnabled = true
-        savePostButton.text = "Post"
+        savePostButton.text = if (isEditMode) "Update Post" else "Post"
 
         Toast.makeText(
-            requireContext(), exception.message ?: "Failed", Toast.LENGTH_LONG
+            requireContext(),
+            exception.message ?: "Failed",
+            Toast.LENGTH_LONG
         ).show()
     }
 
     private fun loadPostForEdit(postId: String) {
-        postRemoteDataSource.getPostById(postId = postId, onSuccess = { post ->
-            titleEditText.setText(post.bookTitle)
-            authorEditText.setText(post.bookAuthor)
-            reviewEditText.setText(post.description)
+        postRemoteDataSource.getPostById(
+            postId = postId,
+            onSuccess = { post ->
+                titleEditText.setText(post.bookTitle)
+                authorEditText.setText(post.bookAuthor)
+                reviewEditText.setText(post.description)
 
-            existingImageUrl = post.customImageUrl
-            existingCreatedAt = post.createdAt
+                existingImageUrl = post.customImageUrl
+                existingCreatedAt = post.createdAt
 
-            if (!post.customImageUrl.isNullOrEmpty()) {
-                Picasso.get().load(post.customImageUrl).into(postImagePreview)
+                if (!post.customImageUrl.isNullOrEmpty()) {
+                    Picasso.get()
+                        .load(post.customImageUrl)
+                        .placeholder(R.drawable.default_book)
+                        .error(R.drawable.default_book)
+                        .into(postImagePreview)
+                }
+            },
+            onFailure = {
+                handleError(it)
             }
-        }, onFailure = {
-            handleError(it)
-        })
+        )
     }
 
     private fun searchBooks(query: String) {
-
-        Toast.makeText(
-            requireContext(),
-            "Key length: ${BuildConfig.GOOGLE_BOOKS_API_KEY.length}",
-            Toast.LENGTH_SHORT
-        ).show()
-
         RetrofitInstance.api.searchBooks(
             query,
             BuildConfig.GOOGLE_BOOKS_API_KEY
-        )
-            .enqueue(object : Callback<GoogleBooksResponse> {
+        ).enqueue(object : Callback<GoogleBooksResponse> {
 
-                override fun onResponse(
-                    call: Call<GoogleBooksResponse>,
-                    response: Response<GoogleBooksResponse>
-                ) {
+            override fun onResponse(
+                call: Call<GoogleBooksResponse>,
+                response: Response<GoogleBooksResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val books = response.body()?.items?.mapNotNull { item ->
+                        val volumeInfo = item.volumeInfo ?: return@mapNotNull null
 
-                    if (response.isSuccessful) {
+                        BookSearchItem(
+                            googleBookId = item.id ?: "",
+                            title = volumeInfo.title ?: "Unknown title",
+                            authors = volumeInfo.authors?.joinToString(", ")
+                                ?: "Unknown author",
+                            thumbnailUrl = volumeInfo.imageLinks?.thumbnail,
+                            description = volumeInfo.description
+                        )
+                    } ?: emptyList()
 
-                        val books = response.body()?.items?.mapNotNull { item ->
-
-                            val volumeInfo = item.volumeInfo ?: return@mapNotNull null
-
-                            BookSearchItem(
-                                googleBookId = item.id ?: "",
-                                title = volumeInfo.title ?: "Unknown title",
-                                authors = volumeInfo.authors?.joinToString(", ")
-                                    ?: "Unknown author",
-                                thumbnailUrl = volumeInfo.imageLinks?.thumbnail,
-                                description = volumeInfo.description
-                            )
-                        } ?: emptyList()
-
-                        booksRecyclerView.visibility = View.VISIBLE
-                        booksAdapter.updateBooks(books)
-                    }
+                    booksRecyclerView.visibility = View.VISIBLE
+                    booksAdapter.updateBooks(books)
                 }
+            }
 
-                override fun onFailure(call: Call<GoogleBooksResponse>, t: Throwable) {
-
-                    Toast.makeText(
-                        requireContext(),
-                        t.message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            })
+            override fun onFailure(call: Call<GoogleBooksResponse>, t: Throwable) {
+                Toast.makeText(
+                    requireContext(),
+                    t.message ?: "Book search failed",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        })
     }
 }

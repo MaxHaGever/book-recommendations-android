@@ -15,6 +15,15 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/postDetailsBackButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:textAllCaps="false"
+            android:textColor="@color/primary" />
+
         <ProgressBar
             android:id="@+id/postDetailsProgressBar"
             android:layout_width="wrap_content"

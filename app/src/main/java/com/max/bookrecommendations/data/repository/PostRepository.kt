@@ -60,4 +60,17 @@ class PostRepository(
             onFailure = onFailure
         )
     }
+
+    fun refreshPostsByOwnerFromRemote(
+        ownerUid: String,
+        onSuccess: (List<Post>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        postRemoteDataSource.getPostsByOwner(
+            ownerUid = ownerUid,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
+
 }

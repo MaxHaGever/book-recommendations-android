@@ -90,4 +90,29 @@ class PostRemoteDataSource {
                 onFailure(exception)
             }
     }
+
+    fun getPostsByOwner(
+        ownerUid: String,
+        onSuccess: (List<Post>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("posts")
+            .whereEqualTo("ownerUid", ownerUid)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val posts = snapshot.documents
+                    .mapNotNull { document ->
+                        document.toObject(Post::class.java)
+                    }
+                    .sortedByDescending { post ->
+                        post.createdAt
+                    }
+
+                onSuccess(posts)
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
 }
