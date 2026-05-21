@@ -60,7 +60,13 @@
     <fragment
         android:id="@+id/signupFragment"
         android:name="com.max.bookrecommendations.ui.auth.SignupFragment"
-        android:label="Sign Up" />
+        android:label="Sign Up">
+
+        <action
+            android:id="@+id/action_signupFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
@@ -74,6 +80,10 @@
         <action
             android:id="@+id/action_profileFragment_to_myPostsFragment"
             app:destination="@id/myPostsFragment" />
+
+        <action
+            android:id="@+id/action_profileFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
 
     </fragment>
 

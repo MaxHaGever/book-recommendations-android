@@ -31,6 +31,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
     private lateinit var ownerTextView: TextView
     private lateinit var descriptionTextView: TextView
     private lateinit var ownerActionsLayout: LinearLayout
+    private lateinit var backButton: MaterialButton
     private lateinit var editPostButton: MaterialButton
     private lateinit var deletePostButton: MaterialButton
 
@@ -51,6 +52,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         ownerTextView = view.findViewById(R.id.postDetailsOwnerTextView)
         descriptionTextView = view.findViewById(R.id.postDetailsDescriptionTextView)
         ownerActionsLayout = view.findViewById(R.id.ownerActionsLayout)
+        backButton = view.findViewById(R.id.postDetailsBackButton)
         editPostButton = view.findViewById(R.id.editPostButton)
         deletePostButton = view.findViewById(R.id.deletePostButton)
 
@@ -58,6 +60,10 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         postRepository = PostRepository(database.postDao())
 
         postId = args.postId
+
+        backButton.setOnClickListener {
+            findNavController().popBackStack()
+        }
 
         editPostButton.setOnClickListener {
             openEditPost()

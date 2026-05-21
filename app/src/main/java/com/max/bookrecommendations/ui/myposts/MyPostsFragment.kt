@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.max.bookrecommendations.R
 import com.max.bookrecommendations.data.local.DatabaseProvider
 import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
@@ -29,6 +30,11 @@ class MyPostsFragment : Fragment(R.layout.fragment_my_posts) {
         val myPostsRecyclerView: RecyclerView = view.findViewById(R.id.myPostsRecyclerView)
         val myPostsProgressBar: ProgressBar = view.findViewById(R.id.myPostsProgressBar)
         val emptyMyPostsTextView: TextView = view.findViewById(R.id.emptyMyPostsTextView)
+        val profileButton: MaterialButton = view.findViewById(R.id.myPostsProfileButton)
+
+        profileButton.setOnClickListener {
+            findNavController().popBackStack()
+        }
 
         postAdapter = PostAdapter(mutableListOf()) { post ->
             val action =
