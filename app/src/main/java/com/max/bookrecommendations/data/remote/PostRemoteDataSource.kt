@@ -74,4 +74,20 @@ class PostRemoteDataSource {
                 onFailure(exception)
             }
     }
+
+    fun deletePost(
+        postId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("posts")
+            .document(postId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 }

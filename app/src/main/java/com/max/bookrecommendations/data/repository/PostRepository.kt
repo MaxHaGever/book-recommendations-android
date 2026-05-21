@@ -48,4 +48,16 @@ class PostRepository(
             onFailure = onFailure
         )
     }
+
+    fun deletePostFromRemote(
+        postId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        postRemoteDataSource.deletePost(
+            postId = postId,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
 }

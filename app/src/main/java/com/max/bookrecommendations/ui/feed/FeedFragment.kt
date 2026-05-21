@@ -14,26 +14,33 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.max.bookrecommendations.R
 import com.max.bookrecommendations.data.local.DatabaseProvider
 import com.max.bookrecommendations.data.repository.PostRepository
+import com.google.android.material.button.MaterialButton
 
 class FeedFragment : Fragment(R.layout.fragment_feed) {
 
     private lateinit var feedViewModel: FeedViewModel
     private lateinit var postAdapter: PostAdapter
 
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val profileButton: MaterialButton = view.findViewById(R.id.profileButton)
         val feedRecyclerView: RecyclerView = view.findViewById(R.id.feedRecyclerView)
         val feedProgressBar: ProgressBar = view.findViewById(R.id.feedProgressBar)
         val emptyFeedTextView: TextView = view.findViewById(R.id.emptyFeedTextView)
         val createPostFab: FloatingActionButton = view.findViewById(R.id.createPostFab)
 
         postAdapter = PostAdapter(mutableListOf()) { post ->
-            Toast.makeText(
-                requireContext(),
-                post.bookTitle,
-                Toast.LENGTH_SHORT
-            ).show()
+            val bundle = Bundle().apply {
+                putString("postId", post.id)
+            }
+
+            findNavController().navigate(
+                R.id.action_feedFragment_to_postDetailsFragment,
+                bundle
+            )
         }
 
         feedRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -70,6 +77,11 @@ class FeedFragment : Fragment(R.layout.fragment_feed) {
         createPostFab.setOnClickListener {
             findNavController().navigate(R.id.createEditPostFragment)
         }
+
+        profileButton.setOnClickListener {
+            findNavController().navigate(R.id.action_feedFragment_to_profileFragment)
+        }
+
 
         feedViewModel.loadFeed()
     }

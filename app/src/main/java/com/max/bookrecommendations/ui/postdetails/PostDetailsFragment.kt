@@ -1,60 +1,185 @@
 package com.max.bookrecommendations.ui.postdetails
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import com.max.bookrecommendations.R
+import com.max.bookrecommendations.data.local.DatabaseProvider
+import com.max.bookrecommendations.data.model.Post
+import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
+import com.max.bookrecommendations.data.remote.PostRemoteDataSource
+import com.max.bookrecommendations.data.repository.PostRepository
+import com.squareup.picasso.Picasso
+import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [PostDetailsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class PostDetailsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var progressBar: ProgressBar
+    private lateinit var imageView: ImageView
+    private lateinit var titleTextView: TextView
+    private lateinit var authorTextView: TextView
+    private lateinit var ownerTextView: TextView
+    private lateinit var descriptionTextView: TextView
+    private lateinit var ownerActionsLayout: LinearLayout
+    private lateinit var editPostButton: MaterialButton
+    private lateinit var deletePostButton: MaterialButton
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private val postRemoteDataSource = PostRemoteDataSource()
+    private val authRemoteDataSource = AuthRemoteDataSource()
+    private lateinit var postRepository: PostRepository
+
+    private var currentPost: Post? = null
+    private var postId: String? = null
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        progressBar = view.findViewById(R.id.postDetailsProgressBar)
+        imageView = view.findViewById(R.id.postDetailsImageView)
+        titleTextView = view.findViewById(R.id.postDetailsTitleTextView)
+        authorTextView = view.findViewById(R.id.postDetailsAuthorTextView)
+        ownerTextView = view.findViewById(R.id.postDetailsOwnerTextView)
+        descriptionTextView = view.findViewById(R.id.postDetailsDescriptionTextView)
+        ownerActionsLayout = view.findViewById(R.id.ownerActionsLayout)
+        editPostButton = view.findViewById(R.id.editPostButton)
+        deletePostButton = view.findViewById(R.id.deletePostButton)
+
+        val database = DatabaseProvider.getDatabase(requireContext())
+        postRepository = PostRepository(database.postDao())
+
+        postId = arguments?.getString("postId")
+
+        if (postId.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Post not found", Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+            return
         }
+
+        editPostButton.setOnClickListener {
+            openEditPost()
+        }
+
+        deletePostButton.setOnClickListener {
+            deleteCurrentPost()
+        }
+
+        loadPost(postId!!)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_post_details, container, false)
-    }
+    private fun loadPost(postId: String) {
+        progressBar.visibility = View.VISIBLE
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment PostDetailsFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            PostDetailsFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+        postRemoteDataSource.getPostById(
+            postId = postId,
+            onSuccess = { post ->
+                progressBar.visibility = View.GONE
+                currentPost = post
+                showPost(post)
+            },
+            onFailure = { exception ->
+                progressBar.visibility = View.GONE
+
+                Toast.makeText(
+                    requireContext(),
+                    exception.message ?: "Failed to load post",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                findNavController().popBackStack()
             }
+        )
+    }
+
+    private fun showPost(post: Post) {
+        titleTextView.text = post.bookTitle
+        authorTextView.text = post.bookAuthor
+        ownerTextView.text = "Shared by ${post.ownerName}"
+        descriptionTextView.text = post.description
+
+        val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
+
+        if (!imageUrl.isNullOrEmpty()) {
+            Picasso.get()
+                .load(imageUrl)
+                .placeholder(R.drawable.default_book)
+                .error(R.drawable.default_book)
+                .into(imageView)
+        } else {
+            imageView.setImageResource(R.drawable.default_book)
+        }
+
+        val currentUserId = authRemoteDataSource.getCurrentUserId()
+        val isOwner = post.ownerUid == currentUserId
+
+        ownerActionsLayout.visibility = if (isOwner) View.VISIBLE else View.GONE
+    }
+
+    private fun openEditPost() {
+        val post = currentPost ?: return
+
+        val bundle = Bundle().apply {
+            putString("postId", post.id)
+        }
+
+        findNavController().navigate(
+            R.id.action_postDetailsFragment_to_createEditPostFragment,
+            bundle
+        )
+    }
+
+    private fun deleteCurrentPost() {
+        val post = currentPost ?: return
+        val currentUserId = authRemoteDataSource.getCurrentUserId()
+
+        if (post.ownerUid != currentUserId) {
+            Toast.makeText(
+                requireContext(),
+                "You can delete only your own posts",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        progressBar.visibility = View.VISIBLE
+        editPostButton.isEnabled = false
+        deletePostButton.isEnabled = false
+
+        postRepository.deletePostFromRemote(
+            postId = post.id,
+            onSuccess = {
+                lifecycleScope.launch {
+                    postRepository.deletePost(post.id)
+
+                    progressBar.visibility = View.GONE
+
+                    Toast.makeText(
+                        requireContext(),
+                        "Post deleted",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    findNavController().popBackStack()
+                }
+            },
+            onFailure = { exception ->
+                progressBar.visibility = View.GONE
+                editPostButton.isEnabled = true
+                deletePostButton.isEnabled = true
+
+                Toast.makeText(
+                    requireContext(),
+                    exception.message ?: "Failed to delete post",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        )
     }
 }

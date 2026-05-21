@@ -17,6 +17,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var nameTextView: TextView
     private lateinit var emailTextView: TextView
     private lateinit var editProfileButton: MaterialButton
+    private lateinit var myPostsButton: MaterialButton
     private lateinit var logoutButton: MaterialButton
     private lateinit var profileImageView: ImageView
     private lateinit var createPostButton: MaterialButton
@@ -29,6 +30,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         nameTextView = view.findViewById(R.id.nameTextView)
         emailTextView = view.findViewById(R.id.emailTextView)
         editProfileButton = view.findViewById(R.id.editProfileButton)
+        myPostsButton = view.findViewById(R.id.myPostsButton)
         logoutButton = view.findViewById(R.id.logoutButton)
         profileImageView = view.findViewById(R.id.profileImageView)
         createPostButton = view.findViewById(R.id.createPostButton)
@@ -43,6 +45,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         editProfileButton.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
+        }
+
+        myPostsButton.setOnClickListener {
+            findNavController().navigate(R.id.action_profileFragment_to_myPostsFragment)
         }
 
         createPostButton.setOnClickListener {

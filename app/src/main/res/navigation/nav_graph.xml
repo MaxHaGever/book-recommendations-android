@@ -9,9 +9,17 @@
         android:name="com.max.bookrecommendations.ui.feed.FeedFragment"
         android:label="Feed">
 
-    <action
-        android:id="@+id/action_feedFragment_to_createEditPostFragment"
-        app:destination="@id/createEditPostFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_createEditPostFragment"
+            app:destination="@id/createEditPostFragment" />
+
+        <action
+            android:id="@+id/action_feedFragment_to_postDetailsFragment"
+            app:destination="@id/postDetailsFragment" />
+
+        <action
+            android:id="@+id/action_feedFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
 
     </fragment>
 
@@ -31,6 +39,22 @@
         <action
             android:id="@+id/action_authFragment_to_feedFragment"
             app:destination="@id/feedFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/postDetailsFragment"
+        android:name="com.max.bookrecommendations.ui.postdetails.PostDetailsFragment"
+        android:label="Post Details">
+
+        <argument
+            android:name="postId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_postDetailsFragment_to_createEditPostFragment"
+            app:destination="@id/createEditPostFragment" />
+
     </fragment>
 
     <fragment
@@ -46,6 +70,11 @@
         <action
             android:id="@+id/action_profileFragment_to_editProfileFragment"
             app:destination="@id/editProfileFragment" />
+
+        <action
+            android:id="@+id/action_profileFragment_to_myPostsFragment"
+            app:destination="@id/myPostsFragment" />
+
     </fragment>
 
     <fragment
@@ -57,4 +86,16 @@
         android:id="@+id/createEditPostFragment"
         android:name="com.max.bookrecommendations.ui.createeditpost.CreateEditPostFragment"
         android:label="Create Post" />
+
+    <fragment
+        android:id="@+id/myPostsFragment"
+        android:name="com.max.bookrecommendations.ui.myposts.MyPostsFragment"
+        android:label="My Posts">
+
+        <action
+            android:id="@+id/action_myPostsFragment_to_postDetailsFragment"
+            app:destination="@id/postDetailsFragment" />
+
+    </fragment>
+
 </navigation>

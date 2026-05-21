@@ -1,60 +1,90 @@
 package com.max.bookrecommendations.ui.myposts
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.max.bookrecommendations.R
+import com.max.bookrecommendations.data.local.DatabaseProvider
+import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
+import com.max.bookrecommendations.data.repository.PostRepository
+import com.max.bookrecommendations.ui.feed.PostAdapter
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class MyPostsFragment : Fragment(R.layout.fragment_my_posts) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [MyPostsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class MyPostsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var myPostsViewModel: MyPostsViewModel
+    private lateinit var postAdapter: PostAdapter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private val authRemoteDataSource = AuthRemoteDataSource()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_my_posts, container, false)
-    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment MyPostsFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            MyPostsFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+        val myPostsRecyclerView: RecyclerView = view.findViewById(R.id.myPostsRecyclerView)
+        val myPostsProgressBar: ProgressBar = view.findViewById(R.id.myPostsProgressBar)
+        val emptyMyPostsTextView: TextView = view.findViewById(R.id.emptyMyPostsTextView)
+
+        postAdapter = PostAdapter(mutableListOf()) { post ->
+            val bundle = Bundle().apply {
+                putString("postId", post.id)
             }
+
+            findNavController().navigate(
+                R.id.action_myPostsFragment_to_postDetailsFragment,
+                bundle
+            )
+        }
+
+        myPostsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        myPostsRecyclerView.adapter = postAdapter
+
+        val database = DatabaseProvider.getDatabase(requireContext())
+        val postRepository = PostRepository(database.postDao())
+        val factory = MyPostsViewModelFactory(postRepository)
+
+        myPostsViewModel = ViewModelProvider(this, factory)[MyPostsViewModel::class.java]
+
+        myPostsViewModel.posts.observe(viewLifecycleOwner) { posts ->
+            postAdapter.submitPosts(posts)
+
+            emptyMyPostsTextView.visibility =
+                if (posts.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        myPostsViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            myPostsProgressBar.visibility =
+                if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        myPostsViewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
+            if (!errorMessage.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        val currentUserId = authRemoteDataSource.getCurrentUserId()
+
+        if (currentUserId == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+            return
+        }
+
+        myPostsViewModel.loadMyPosts(currentUserId)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val currentUserId = authRemoteDataSource.getCurrentUserId()
+        if (::myPostsViewModel.isInitialized && currentUserId != null) {
+            myPostsViewModel.loadMyPosts(currentUserId)
+        }
     }
 }
