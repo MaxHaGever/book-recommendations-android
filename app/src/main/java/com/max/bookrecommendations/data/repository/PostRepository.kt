@@ -73,4 +73,16 @@ class PostRepository(
         )
     }
 
+    fun getPostByIdFromRemote(
+        postId: String,
+        onSuccess: (Post) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        postRemoteDataSource.getPostById(
+            postId = postId,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
+
 }
