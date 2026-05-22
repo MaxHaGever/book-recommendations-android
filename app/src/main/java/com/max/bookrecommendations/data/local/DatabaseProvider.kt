@@ -14,7 +14,9 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "book_recommendations_db"
-            ).build()
+            )
+                .fallbackToDestructiveMigration()
+                .build()
 
             INSTANCE = instance
             instance

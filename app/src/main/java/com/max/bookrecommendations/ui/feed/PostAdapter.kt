@@ -12,7 +12,8 @@ import com.squareup.picasso.Picasso
 
 class PostAdapter(
     private val posts: MutableList<Post>,
-    private val onPostClick: (Post) -> Unit
+    private val onPostClick: (Post) -> Unit,
+    private val onLoadPostImage: ((Post, ImageView) -> Unit)? = null
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
     class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -38,17 +39,12 @@ class PostAdapter(
         holder.descriptionTextView.text = post.description
         holder.ownerTextView.text = "Shared by ${post.ownerName}"
 
-        val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
+        resetPostImage(holder.imageView)
 
-        Picasso.get().cancelRequest(holder.imageView)
-        holder.imageView.setImageResource(R.drawable.default_book)
-
-        if (!imageUrl.isNullOrEmpty()) {
-            Picasso.get()
-                .load(imageUrl)
-                .placeholder(R.drawable.default_book)
-                .error(R.drawable.default_book)
-                .into(holder.imageView)
+        if (onLoadPostImage != null) {
+            onLoadPostImage.invoke(post, holder.imageView)
+        } else {
+            loadRemoteImage(post, holder.imageView)
         }
 
         holder.itemView.setOnClickListener {
@@ -62,5 +58,22 @@ class PostAdapter(
         posts.clear()
         posts.addAll(newPosts)
         notifyDataSetChanged()
+    }
+
+    private fun resetPostImage(imageView: ImageView) {
+        Picasso.get().cancelRequest(imageView)
+        imageView.setImageResource(R.drawable.default_book)
+    }
+
+    private fun loadRemoteImage(post: Post, imageView: ImageView) {
+        val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
+
+        if (!imageUrl.isNullOrEmpty()) {
+            Picasso.get()
+                .load(imageUrl)
+                .placeholder(R.drawable.default_book)
+                .error(R.drawable.default_book)
+                .into(imageView)
+        }
     }
 }

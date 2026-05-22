@@ -30,24 +30,21 @@ class PostDetailsViewModel(
     val deleteSuccess: LiveData<Boolean> = _deleteSuccess
 
     fun loadPost(postId: String) {
-        _isLoading.value = true
+        viewModelScope.launch {
+            _isLoading.value = true
 
-        postRepository.getPostByIdFromRemote(
-            postId = postId,
-            onSuccess = { remotePost ->
-                _isLoading.value = false
-                _post.value = remotePost
-                updateOwnership(remotePost)
+            val cachedPost = postRepository.getPostById(postId)
 
-                viewModelScope.launch {
-                    postRepository.savePost(remotePost)
-                }
-            },
-            onFailure = { exception ->
-                _isLoading.value = false
-                _errorMessage.value = exception.message ?: "Failed to load post"
+            if (cachedPost != null) {
+                _post.value = cachedPost
+                updateOwnership(cachedPost)
             }
-        )
+
+            refreshPostFromRemote(
+                postId = postId,
+                hasCachedPost = cachedPost != null
+            )
+        }
     }
 
     fun deletePost(post: Post) {
@@ -73,6 +70,31 @@ class PostDetailsViewModel(
             onFailure = { exception ->
                 _isLoading.value = false
                 _errorMessage.value = exception.message ?: "Failed to delete post"
+            }
+        )
+    }
+
+    private fun refreshPostFromRemote(
+        postId: String,
+        hasCachedPost: Boolean
+    ) {
+        postRepository.getPostByIdFromRemote(
+            postId = postId,
+            onSuccess = { remotePost ->
+                _post.value = remotePost
+                updateOwnership(remotePost)
+                _isLoading.value = false
+
+                viewModelScope.launch {
+                    postRepository.savePost(remotePost)
+                }
+            },
+            onFailure = { exception ->
+                _isLoading.value = false
+
+                if (!hasCachedPost) {
+                    _errorMessage.value = exception.message ?: "Failed to load post"
+                }
             }
         )
     }

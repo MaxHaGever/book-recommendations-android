@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.button.MaterialButton
@@ -16,8 +17,10 @@ import com.max.bookrecommendations.R
 import com.max.bookrecommendations.data.local.DatabaseProvider
 import com.max.bookrecommendations.data.model.Post
 import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
+import com.max.bookrecommendations.data.repository.ImageCacheRepository
 import com.max.bookrecommendations.data.repository.PostRepository
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.launch
 
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
@@ -35,6 +38,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
     private lateinit var deletePostButton: MaterialButton
 
     private lateinit var postDetailsViewModel: PostDetailsViewModel
+    private lateinit var imageCacheRepository: ImageCacheRepository
 
     private var currentPost: Post? = null
     private var postId: String? = null
@@ -56,6 +60,11 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         val database = DatabaseProvider.getDatabase(requireContext())
         val postRepository = PostRepository(database.postDao())
         val authRemoteDataSource = AuthRemoteDataSource()
+
+        imageCacheRepository = ImageCacheRepository(
+            context = requireContext().applicationContext,
+            cachedImageDao = database.cachedImageDao()
+        )
 
         val factory = PostDetailsViewModelFactory(
             postRepository = postRepository,
@@ -132,16 +141,44 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         ownerTextView.text = "Shared by ${post.ownerName}"
         descriptionTextView.text = post.description
 
+        loadCachedPostImage(post)
+    }
+
+    private fun loadCachedPostImage(post: Post) {
         val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
 
-        if (!imageUrl.isNullOrEmpty()) {
-            Picasso.get()
-                .load(imageUrl)
-                .placeholder(R.drawable.default_book)
-                .error(R.drawable.default_book)
-                .into(imageView)
-        } else {
-            imageView.setImageResource(R.drawable.default_book)
+        Picasso.get().cancelRequest(imageView)
+        imageView.setImageResource(R.drawable.default_book)
+
+        if (imageUrl.isNullOrEmpty()) {
+            return
+        }
+
+        imageView.tag = imageUrl
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val cachedImageFile = imageCacheRepository.getOrCacheImage(
+                remoteUrl = imageUrl,
+                sourceLastUpdated = post.lastUpdated
+            )
+
+            if (imageView.tag != imageUrl) {
+                return@launch
+            }
+
+            if (cachedImageFile != null) {
+                Picasso.get()
+                    .load(cachedImageFile)
+                    .placeholder(R.drawable.default_book)
+                    .error(R.drawable.default_book)
+                    .into(imageView)
+            } else {
+                Picasso.get()
+                    .load(imageUrl)
+                    .placeholder(R.drawable.default_book)
+                    .error(R.drawable.default_book)
+                    .into(imageView)
+            }
         }
     }
 
