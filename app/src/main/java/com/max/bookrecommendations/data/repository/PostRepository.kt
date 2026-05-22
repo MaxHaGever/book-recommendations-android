@@ -49,6 +49,30 @@ class PostRepository(
         )
     }
 
+    fun getPostByIdFromRemote(
+        postId: String,
+        onSuccess: (Post) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        postRemoteDataSource.getPostById(
+            postId = postId,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
+
+    fun savePostToRemote(
+        post: Post,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        postRemoteDataSource.savePost(
+            post = post,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
+
     fun deletePostFromRemote(
         postId: String,
         onSuccess: () -> Unit,
@@ -72,17 +96,4 @@ class PostRepository(
             onFailure = onFailure
         )
     }
-
-    fun getPostByIdFromRemote(
-        postId: String,
-        onSuccess: (Post) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        postRemoteDataSource.getPostById(
-            postId = postId,
-            onSuccess = onSuccess,
-            onFailure = onFailure
-        )
-    }
-
 }
