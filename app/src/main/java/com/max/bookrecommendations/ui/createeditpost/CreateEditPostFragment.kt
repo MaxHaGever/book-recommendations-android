@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -29,6 +30,8 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
     private lateinit var titleEditText: TextInputEditText
     private lateinit var reviewEditText: TextInputEditText
     private lateinit var postImagePreview: ImageView
+    private lateinit var backButton: MaterialButton
+    private lateinit var screenTitleTextView: TextView
     private lateinit var savePostButton: MaterialButton
     private lateinit var authorEditText: TextInputEditText
     private lateinit var bookSearchEditText: TextInputEditText
@@ -57,6 +60,8 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         titleEditText = view.findViewById(R.id.titleEditText)
         reviewEditText = view.findViewById(R.id.reviewEditText)
         postImagePreview = view.findViewById(R.id.postImagePreview)
+        backButton = view.findViewById(R.id.createEditPostBackButton)
+        screenTitleTextView = view.findViewById(R.id.createEditPostTitleTextView)
         savePostButton = view.findViewById(R.id.savePostButton)
         authorEditText = view.findViewById(R.id.authorEditText)
         bookSearchEditText = view.findViewById(R.id.bookSearchEditText)
@@ -74,8 +79,13 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         isEditMode = !postId.isNullOrEmpty()
 
         if (isEditMode) {
+            screenTitleTextView.text = "Edit Post"
             savePostButton.text = "Update Post"
             createEditPostViewModel.loadPostForEdit(postId!!)
+        }
+
+        backButton.setOnClickListener {
+            findNavController().popBackStack()
         }
 
         changeImageButton.setOnClickListener {
