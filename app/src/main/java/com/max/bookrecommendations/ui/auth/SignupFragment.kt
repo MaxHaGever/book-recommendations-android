@@ -5,12 +5,11 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import com.max.bookrecommendations.R
-import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
-import com.google.firebase.auth.UserProfileChangeRequest
 
 class SignupFragment : Fragment(R.layout.fragment_signup) {
 
@@ -20,7 +19,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
     private lateinit var confirmPasswordInputLayout: TextInputLayout
     private lateinit var signupButton: MaterialButton
 
-    private val authRemoteDataSource = AuthRemoteDataSource()
+    private val viewModel: SignupViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -33,6 +32,8 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
 
         val goToLoginButton: View = view.findViewById(R.id.goToLoginButton)
 
+        observeViewModel()
+
         signupButton.setOnClickListener {
             if (validateSignupForm()) {
                 signupUser()
@@ -44,49 +45,35 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         }
     }
 
+    private fun observeViewModel() {
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            signupButton.isEnabled = !isLoading
+            signupButton.text = if (isLoading) "Creating account..." else "Sign Up"
+        }
+
+        viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrBlank()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        viewModel.signupSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_signupFragment_to_feedFragment)
+            }
+        }
+    }
+
     private fun signupUser() {
+        val name = nameInputLayout.editText?.text.toString().trim()
         val email = emailInputLayout.editText?.text.toString().trim()
         val password = passwordInputLayout.editText?.text.toString().trim()
 
-        signupButton.isEnabled = false
-        signupButton.text = "Creating account..."
-
-        authRemoteDataSource.signup(
+        viewModel.signup(
+            name = name,
             email = email,
-            password = password,
-            onSuccess = { user ->
-                val name = nameInputLayout.editText?.text.toString().trim()
-
-                val profileUpdates = UserProfileChangeRequest.Builder()
-                    .setDisplayName(name)
-                    .build()
-
-                user?.updateProfile(profileUpdates)
-                    ?.addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_signupFragment_to_feedFragment)
-                    }
-                    ?.addOnFailureListener { exception ->
-                        signupButton.isEnabled = true
-                        signupButton.text = "Sign Up"
-
-                        Toast.makeText(
-                            requireContext(),
-                            exception.message ?: "Profile update failed",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-            },
-            onFailure = { exception ->
-                signupButton.isEnabled = true
-                signupButton.text = "Sign Up"
-
-                Toast.makeText(
-                    requireContext(),
-                    exception.message ?: "Signup failed",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+            password = password
         )
     }
 
