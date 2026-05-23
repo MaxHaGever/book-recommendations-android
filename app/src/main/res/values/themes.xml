@@ -12,11 +12,6 @@
 
     <style name="Theme.BookRecommendations" parent="Base.Theme.BookRecommendations" />
 
-    <style name="CircleImage">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-    </style>
-
     <style name="AppScreenTitle">
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">28sp</item>
@@ -50,5 +45,10 @@
         <item name="cornerRadius">12dp</item>
         <item name="strokeColor">@color/primary</item>
         <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="CircleImage">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
     </style>
 </resources>

@@ -5,11 +5,11 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import com.max.bookrecommendations.R
-import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 
 class AuthFragment : Fragment(R.layout.fragment_auth) {
 
@@ -17,21 +17,20 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     private lateinit var passwordInputLayout: TextInputLayout
     private lateinit var loginButton: MaterialButton
 
-    private val authRemoteDataSource = AuthRemoteDataSource()
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        if (authRemoteDataSource.isUserLoggedIn()) {
-            findNavController().navigate(R.id.action_authFragment_to_feedFragment)
-            return
-        }
 
         emailInputLayout = view.findViewById(R.id.emailInputLayout)
         passwordInputLayout = view.findViewById(R.id.passwordInputLayout)
         loginButton = view.findViewById(R.id.loginButton)
 
         val goToSignupButton: View = view.findViewById(R.id.goToSignupButton)
+
+        observeViewModel()
+
+        viewModel.checkReturningUser()
 
         goToSignupButton.setOnClickListener {
             findNavController().navigate(R.id.action_authFragment_to_signupFragment)
@@ -40,6 +39,32 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
         loginButton.setOnClickListener {
             if (validateLoginForm()) {
                 loginUser()
+            }
+        }
+    }
+
+    private fun observeViewModel() {
+        viewModel.returningUser.observe(viewLifecycleOwner) { isReturning ->
+            if (isReturning) {
+                findNavController().navigate(R.id.action_authFragment_to_feedFragment)
+            }
+        }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            loginButton.isEnabled = !isLoading
+            loginButton.text = if (isLoading) "Logging in..." else "Login"
+        }
+
+        viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrBlank()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        viewModel.loginSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                Toast.makeText(requireContext(), "Login successful", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_authFragment_to_feedFragment)
             }
         }
     }
@@ -77,30 +102,6 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
         val email = emailInputLayout.editText?.text.toString().trim()
         val password = passwordInputLayout.editText?.text.toString().trim()
 
-        loginButton.isEnabled = false
-        loginButton.text = "Logging in..."
-
-        authRemoteDataSource.login(
-            email = email,
-            password = password,
-            onSuccess = {
-                Toast.makeText(requireContext(), "Login successful", Toast.LENGTH_SHORT).show()
-
-                loginButton.isEnabled = true
-                loginButton.text = "Login"
-
-                findNavController().navigate(R.id.action_authFragment_to_feedFragment)
-            },
-            onFailure = { exception ->
-                loginButton.isEnabled = true
-                loginButton.text = "Login"
-
-                Toast.makeText(
-                    requireContext(),
-                    exception.message ?: "Login failed",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        )
+        viewModel.login(email, password)
     }
 }
