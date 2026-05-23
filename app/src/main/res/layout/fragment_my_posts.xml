@@ -10,42 +10,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingTop="24dp">
+        android:paddingTop="56dp">
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/myPostsHeaderLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
+            android:minHeight="48dp"
             android:paddingHorizontal="24dp">
 
             <TextView
                 android:id="@+id/myPostsTitleTextView"
-                android:layout_width="0dp"
+                style="@style/AppScreenTitle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="My Posts"
-                android:textColor="@color/text_primary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:paddingHorizontal="92dp"
+                android:text="My Posts" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/myPostsProfileButton"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/AppHeaderButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
                 android:text="Profile"
-                android:textAllCaps="false"
-                android:textColor="@color/primary" />
+                android:textAllCaps="false" />
 
-        </LinearLayout>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/myPostsSubtitleTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
             android:paddingHorizontal="24dp"
             android:text="Recommendations you shared"
             android:textColor="@color/text_secondary"
@@ -66,7 +66,7 @@
             android:layout_marginTop="32dp"
             android:gravity="center"
             android:paddingHorizontal="24dp"
-            android:text="You have not shared any recommendations yet"
+            android:text="You have not shared any recommendations yet."
             android:textColor="@color/text_secondary"
             android:textSize="16sp"
             android:visibility="gone" />
@@ -75,10 +75,11 @@
             android:id="@+id/myPostsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingBottom="24dp" />
+            android:paddingBottom="24dp"
+            android:paddingTop="2dp" />
 
     </LinearLayout>
 

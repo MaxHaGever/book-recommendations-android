@@ -9,17 +9,17 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp">
+        android:paddingHorizontal="24dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:id="@+id/titleTextView"
+            style="@style/AppScreenTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Create Account"
-            android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -30,8 +30,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/outline_soft"
+            app:strokeWidth="1dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/titleTextView">
@@ -100,14 +102,11 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/signupButton"
+                    style="@style/AppPrimaryButton"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
                     android:layout_marginTop="24dp"
                     android:text="Sign Up"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    app:backgroundTint="@color/primary"
-                    app:cornerRadius="16dp" />
+                    android:textAllCaps="false" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/goToLoginButton"

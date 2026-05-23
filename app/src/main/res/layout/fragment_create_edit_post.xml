@@ -9,25 +9,47 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:paddingHorizontal="24dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="24dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <FrameLayout
+            android:id="@+id/createEditPostHeaderLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create Post"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="18dp"
+            android:minHeight="48dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/createEditPostBackButton"
+                style="@style/AppHeaderButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:text="Back" />
+
+            <TextView
+                android:id="@+id/createEditPostTitleTextView"
+                style="@style/AppScreenTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:paddingHorizontal="92dp"
+                android:text="Create Post" />
+
+        </FrameLayout>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/card_background">
+            app:cardBackgroundColor="@color/card_background"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/outline_soft"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -38,22 +60,18 @@
                 <ImageView
                     android:id="@+id/postImagePreview"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp"
-                    android:scaleType="centerCrop"
+                    android:layout_height="150dp"
+                    android:background="@color/surface_tint"
+                    android:padding="10dp"
+                    android:scaleType="centerInside"
                     android:src="@drawable/default_book"
                     android:layout_marginBottom="12dp"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/changePostImageButton"
+                    style="@style/AppOutlineButton"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
                     android:text="Add Image"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary"
-                    app:strokeColor="@color/primary"
-                    app:strokeWidth="1dp"
-                    app:backgroundTint="@android:color/transparent"
-                    app:cornerRadius="16dp"
                     android:layout_marginBottom="20dp"/>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -70,14 +88,16 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/searchBookButton"
+                    style="@style/AppOutlineButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:text="Search Book" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/booksRecyclerView"
                     android:layout_width="match_parent"
                     android:layout_height="160dp"
+                    android:layout_marginTop="8dp"
                     android:visibility="gone" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -119,14 +139,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/savePostButton"
+                    style="@style/AppPrimaryButton"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
                     android:layout_marginTop="24dp"
-                    android:text="Post"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    app:backgroundTint="@color/primary"
-                    app:cornerRadius="16dp"/>
+                    android:text="Post"/>
 
             </LinearLayout>
 

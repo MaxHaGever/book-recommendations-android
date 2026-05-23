@@ -10,42 +10,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingTop="24dp">
+        android:paddingTop="56dp">
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/feedHeaderLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
+            android:minHeight="48dp"
             android:paddingHorizontal="24dp">
 
             <TextView
                 android:id="@+id/feedTitleTextView"
-                android:layout_width="0dp"
+                style="@style/AppScreenTitle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Home Feed"
-                android:textColor="@color/text_primary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:paddingHorizontal="92dp"
+                android:text="Home Feed" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/profileButton"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/AppHeaderButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
                 android:text="Profile"
-                android:textAllCaps="false"
-                android:textColor="@color/primary" />
+                android:textAllCaps="false" />
 
-        </LinearLayout>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/feedSubtitleTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
             android:paddingHorizontal="24dp"
             android:text="Book recommendations from the community"
             android:textColor="@color/text_secondary"
@@ -66,7 +66,7 @@
             android:layout_marginTop="32dp"
             android:gravity="center"
             android:paddingHorizontal="24dp"
-            android:text="No recommendations yet"
+            android:text="No recommendations yet. Share the first one."
             android:textColor="@color/text_secondary"
             android:textSize="16sp"
             android:visibility="gone" />
@@ -75,10 +75,11 @@
             android:id="@+id/feedRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingBottom="88dp" />
+            android:paddingBottom="88dp"
+            android:paddingTop="2dp" />
 
     </LinearLayout>
 
