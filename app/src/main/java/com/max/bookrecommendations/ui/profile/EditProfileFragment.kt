@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import com.max.bookrecommendations.R
+import com.squareup.picasso.Picasso
 
 class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
 
@@ -43,6 +44,23 @@ class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
             view.findViewById(R.id.changeProfileImageButton)
 
         nameInputLayout.editText?.setText(viewModel.getCurrentName())
+
+        val currentUser = viewModel.getCurrentUser()
+
+        val photoUrl = currentUser?.photoUrl
+
+        if (photoUrl != null) {
+
+            profileImagePreview.imageTintList = null
+            profileImagePreview.setPadding(0, 0, 0, 0)
+            profileImagePreview.scaleType = ImageView.ScaleType.CENTER_CROP
+
+            Picasso.get()
+                .load(photoUrl)
+                .placeholder(R.drawable.outline_account_circle_24)
+                .error(R.drawable.outline_account_circle_24)
+                .into(profileImagePreview)
+        }
 
         observeViewModel()
 

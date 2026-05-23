@@ -40,4 +40,6 @@ class EditProfileViewModel(
             }
         )
     }
+
+    fun getCurrentUser() = profileRepository.getCurrentUser()
 }
