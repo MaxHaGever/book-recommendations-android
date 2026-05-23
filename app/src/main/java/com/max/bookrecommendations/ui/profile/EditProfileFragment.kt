@@ -7,22 +7,21 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.max.bookrecommendations.R
-import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
-import com.max.bookrecommendations.data.remote.StorageRemoteDataSource
 
 class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
 
     private lateinit var nameInputLayout: TextInputLayout
     private lateinit var saveButton: MaterialButton
     private lateinit var profileImagePreview: ImageView
+
     private var selectedImageUri: Uri? = null
-    private val authRemoteDataSource = AuthRemoteDataSource()
-    private val storageRemoteDataSource = StorageRemoteDataSource()
+
+    private val viewModel: EditProfileViewModel by viewModels()
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -40,16 +39,12 @@ class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
         saveButton = view.findViewById(R.id.saveButton)
         profileImagePreview = view.findViewById(R.id.profileImagePreview)
 
-        val changeImageButton: MaterialButton = view.findViewById(R.id.changeProfileImageButton)
+        val changeImageButton: MaterialButton =
+            view.findViewById(R.id.changeProfileImageButton)
 
-        val currentUser = authRemoteDataSource.getCurrentUser()
+        nameInputLayout.editText?.setText(viewModel.getCurrentName())
 
-        if (currentUser == null) {
-            findNavController().popBackStack()
-            return
-        }
-
-        nameInputLayout.editText?.setText(currentUser.displayName ?: "")
+        observeViewModel()
 
         changeImageButton.setOnClickListener {
             openGallery()
@@ -57,7 +52,27 @@ class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
 
         saveButton.setOnClickListener {
             if (validateForm()) {
-                updateProfileName()
+                updateProfile()
+            }
+        }
+    }
+
+    private fun observeViewModel() {
+        viewModel.isSaving.observe(viewLifecycleOwner) { isSaving ->
+            saveButton.isEnabled = !isSaving
+            saveButton.text = if (isSaving) "Saving..." else "Save Changes"
+        }
+
+        viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrBlank()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        viewModel.saveSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
             }
         }
     }
@@ -74,67 +89,13 @@ class EditProfileFragment : Fragment(R.layout.fragment_edit_profile) {
         }
     }
 
-    private fun updateProfileName() {
+    private fun updateProfile() {
         val name = nameInputLayout.editText?.text.toString().trim()
-        val currentUser = authRemoteDataSource.getCurrentUser()
 
-        if (currentUser == null) return
-
-        saveButton.isEnabled = false
-        saveButton.text = "Saving..."
-
-        if (selectedImageUri != null) {
-
-            storageRemoteDataSource.uploadProfileImage(
-                currentUser.uid,
-                selectedImageUri!!,
-                onSuccess = { imageUrl ->
-
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(name)
-                        .setPhotoUri(Uri.parse(imageUrl))
-                        .build()
-
-                    currentUser.updateProfile(profileUpdates)
-                        .addOnSuccessListener {
-                            Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
-                            findNavController().popBackStack()
-                        }
-                        .addOnFailureListener { exception ->
-                            handleError(exception)
-                        }
-
-                },
-                onFailure = { exception ->
-                    handleError(exception)
-                }
-            )
-
-        } else {
-            val profileUpdates = UserProfileChangeRequest.Builder()
-                .setDisplayName(name)
-                .build()
-
-            currentUser.updateProfile(profileUpdates)
-                .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
-                    findNavController().popBackStack()
-                }
-                .addOnFailureListener { exception ->
-                    handleError(exception)
-                }
-        }
-    }
-
-    private fun handleError(exception: Exception) {
-        saveButton.isEnabled = true
-        saveButton.text = "Save Changes"
-
-        Toast.makeText(
-            requireContext(),
-            exception.message ?: "Update failed",
-            Toast.LENGTH_LONG
-        ).show()
+        viewModel.updateProfile(
+            name = name,
+            imageUri = selectedImageUri
+        )
     }
 
     private fun openGallery() {
