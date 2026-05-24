@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
@@ -60,9 +61,21 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         viewModel.signupSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
                 Toast.makeText(requireContext(), "Account created successfully", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_signupFragment_to_feedFragment)
+                navigateToFeedAndClearAuth()
             }
         }
+    }
+
+    private fun navigateToFeedAndClearAuth() {
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.authFragment, true)
+            .build()
+
+        findNavController().navigate(
+            R.id.feedFragment,
+            null,
+            navOptions
+        )
     }
 
     private fun signupUser() {

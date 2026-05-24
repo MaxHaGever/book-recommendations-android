@@ -148,12 +148,14 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
 
         Picasso.get().cancelRequest(imageView)
+        showDefaultPostImage()
         imageView.setImageResource(R.drawable.default_book)
 
         if (imageUrl.isNullOrEmpty()) {
             return
         }
 
+        showRealPostImage()
         imageView.tag = imageUrl
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -180,6 +182,17 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                     .into(imageView)
             }
         }
+    }
+
+    private fun showRealPostImage() {
+        imageView.setPadding(0, 0, 0, 0)
+        imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+    }
+
+    private fun showDefaultPostImage() {
+        val padding = resources.getDimensionPixelSize(R.dimen.post_placeholder_padding)
+        imageView.setPadding(padding, padding, padding, padding)
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
     }
 
     private fun openEditPost() {

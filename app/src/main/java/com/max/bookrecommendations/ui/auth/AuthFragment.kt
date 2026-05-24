@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
@@ -46,7 +47,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
     private fun observeViewModel() {
         viewModel.returningUser.observe(viewLifecycleOwner) { isReturning ->
             if (isReturning) {
-                findNavController().navigate(R.id.action_authFragment_to_feedFragment)
+                navigateToFeedAndClearAuth()
             }
         }
 
@@ -64,9 +65,21 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
         viewModel.loginSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
                 Toast.makeText(requireContext(), "Login successful", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_authFragment_to_feedFragment)
+                navigateToFeedAndClearAuth()
             }
         }
+    }
+
+    private fun navigateToFeedAndClearAuth() {
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.authFragment, true)
+            .build()
+
+        findNavController().navigate(
+            R.id.feedFragment,
+            null,
+            navOptions
+        )
     }
 
     private fun validateLoginForm(): Boolean {

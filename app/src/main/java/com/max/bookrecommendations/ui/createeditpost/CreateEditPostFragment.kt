@@ -50,6 +50,7 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
                 selectedImageUri = uri
+                showRealPostImage()
                 postImagePreview.setImageURI(uri)
             }
         }
@@ -131,6 +132,7 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
                     selectedBook.thumbnailUrl.replace("http://", "https://")
 
                 selectedApiImageUrl = secureImageUrl
+                showRealPostImage()
 
                 Picasso.get()
                     .load(secureImageUrl)
@@ -206,14 +208,28 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
         reviewEditText.setText(post.description)
 
         if (!post.customImageUrl.isNullOrEmpty()) {
+            showRealPostImage()
+
             Picasso.get()
                 .load(post.customImageUrl)
                 .placeholder(R.drawable.default_book)
                 .error(R.drawable.default_book)
                 .into(postImagePreview)
         } else {
+            showDefaultPostImage()
             postImagePreview.setImageResource(R.drawable.default_book)
         }
+    }
+
+    private fun showRealPostImage() {
+        postImagePreview.setPadding(0, 0, 0, 0)
+        postImagePreview.scaleType = ImageView.ScaleType.CENTER_CROP
+    }
+
+    private fun showDefaultPostImage() {
+        val padding = resources.getDimensionPixelSize(R.dimen.post_placeholder_padding)
+        postImagePreview.setPadding(padding, padding, padding, padding)
+        postImagePreview.scaleType = ImageView.ScaleType.CENTER_INSIDE
     }
 
     private fun savePost() {
