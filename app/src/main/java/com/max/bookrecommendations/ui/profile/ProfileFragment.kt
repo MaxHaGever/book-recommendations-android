@@ -7,6 +7,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.max.bookrecommendations.R
@@ -47,7 +48,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         viewModel.profileState.observe(viewLifecycleOwner) { state ->
 
             if (!state.isLoggedIn) {
-                findNavController().popBackStack(R.id.authFragment, false)
+                navigateToAuthAndClearBackStack()
                 return@observe
             }
 
@@ -74,9 +75,21 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         viewModel.logoutSuccess.observe(viewLifecycleOwner) { success ->
             if (success) {
                 Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack(R.id.authFragment, false)
+                navigateToAuthAndClearBackStack()
             }
         }
+    }
+
+    private fun navigateToAuthAndClearBackStack() {
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph, true)
+            .build()
+
+        findNavController().navigate(
+            R.id.authFragment,
+            null,
+            navOptions
+        )
     }
 
     private fun setupClickListeners() {
