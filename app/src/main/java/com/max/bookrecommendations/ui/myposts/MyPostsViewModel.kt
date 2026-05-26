@@ -5,11 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.max.bookrecommendations.data.model.Post
+import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
 import com.max.bookrecommendations.data.repository.PostRepository
 import kotlinx.coroutines.launch
 
 class MyPostsViewModel(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val authRemoteDataSource: AuthRemoteDataSource
 ) : ViewModel() {
 
     private val _posts = MutableLiveData<List<Post>>()
@@ -20,6 +22,10 @@ class MyPostsViewModel(
 
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> = _errorMessage
+
+    fun getCurrentUserId(): String? {
+        return authRemoteDataSource.getCurrentUserId()
+    }
 
     fun loadMyPosts(ownerUid: String) {
         viewModelScope.launch {

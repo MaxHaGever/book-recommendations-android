@@ -9,18 +9,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.button.MaterialButton
 import com.max.bookrecommendations.R
-import com.max.bookrecommendations.data.local.DatabaseProvider
+import com.max.bookrecommendations.data.AppContainer
 import com.max.bookrecommendations.data.model.Post
-import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
-import com.max.bookrecommendations.data.repository.ImageCacheRepository
-import com.max.bookrecommendations.data.repository.PostRepository
-import com.squareup.picasso.Picasso
-import kotlinx.coroutines.launch
+import com.max.bookrecommendations.ui.common.PostImageLoader
 
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
@@ -38,7 +33,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
     private lateinit var deletePostButton: MaterialButton
 
     private lateinit var postDetailsViewModel: PostDetailsViewModel
-    private lateinit var imageCacheRepository: ImageCacheRepository
+    private lateinit var postImageLoader: PostImageLoader
 
     private var currentPost: Post? = null
     private var postId: String? = null
@@ -57,18 +52,10 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         editPostButton = view.findViewById(R.id.editPostButton)
         deletePostButton = view.findViewById(R.id.deletePostButton)
 
-        val database = DatabaseProvider.getDatabase(requireContext())
-        val postRepository = PostRepository(database.postDao())
-        val authRemoteDataSource = AuthRemoteDataSource()
-
-        imageCacheRepository = ImageCacheRepository(
-            context = requireContext().applicationContext,
-            cachedImageDao = database.cachedImageDao()
-        )
+        postImageLoader = AppContainer.postImageLoader(requireContext())
 
         val factory = PostDetailsViewModelFactory(
-            postRepository = postRepository,
-            authRemoteDataSource = authRemoteDataSource
+            requireContext().applicationContext
         )
 
         postDetailsViewModel =
@@ -141,47 +128,13 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         ownerTextView.text = "Shared by ${post.ownerName}"
         descriptionTextView.text = post.description
 
-        loadCachedPostImage(post)
-    }
-
-    private fun loadCachedPostImage(post: Post) {
-        val imageUrl = post.customImageUrl ?: post.bookThumbnailUrl
-
-        Picasso.get().cancelRequest(imageView)
-        showDefaultPostImage()
-        imageView.setImageResource(R.drawable.default_book)
-
-        if (imageUrl.isNullOrEmpty()) {
-            return
-        }
-
-        showRealPostImage()
-        imageView.tag = imageUrl
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val cachedImageFile = imageCacheRepository.getOrCacheImage(
-                remoteUrl = imageUrl,
-                sourceLastUpdated = post.lastUpdated
-            )
-
-            if (imageView.tag != imageUrl) {
-                return@launch
-            }
-
-            if (cachedImageFile != null) {
-                Picasso.get()
-                    .load(cachedImageFile)
-                    .placeholder(R.drawable.default_book)
-                    .error(R.drawable.default_book)
-                    .into(imageView)
-            } else {
-                Picasso.get()
-                    .load(imageUrl)
-                    .placeholder(R.drawable.default_book)
-                    .error(R.drawable.default_book)
-                    .into(imageView)
-            }
-        }
+        postImageLoader.load(
+            lifecycleOwner = viewLifecycleOwner,
+            post = post,
+            imageView = imageView,
+            onDefaultImage = { showDefaultPostImage() },
+            onRealImage = { showRealPostImage() }
+        )
     }
 
     private fun showRealPostImage() {
