@@ -16,11 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.max.bookrecommendations.R
-import com.max.bookrecommendations.data.local.DatabaseProvider
 import com.max.bookrecommendations.data.model.Post
-import com.max.bookrecommendations.data.remote.AuthRemoteDataSource
-import com.max.bookrecommendations.data.remote.StorageRemoteDataSource
-import com.max.bookrecommendations.data.repository.PostRepository
 import com.squareup.picasso.Picasso
 
 class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
@@ -107,15 +103,8 @@ class CreateEditPostFragment : Fragment(R.layout.fragment_create_edit_post) {
     }
 
     private fun setupViewModel() {
-        val database = DatabaseProvider.getDatabase(requireContext())
-        val postRepository = PostRepository(database.postDao())
-        val authRemoteDataSource = AuthRemoteDataSource()
-        val storageRemoteDataSource = StorageRemoteDataSource()
-
         val factory = CreateEditPostViewModelFactory(
-            postRepository = postRepository,
-            authRemoteDataSource = authRemoteDataSource,
-            storageRemoteDataSource = storageRemoteDataSource
+            requireContext().applicationContext
         )
 
         createEditPostViewModel =
